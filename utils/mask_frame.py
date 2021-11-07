@@ -10,20 +10,22 @@ class FrameBuffer():
     notification_rate: int = 15
     last_notification: float = (time.time() - notification_rate)
     client = Client()
+    organization_id: str
 
-    (client
-    .set_endpoint('https://appwrite.orpine.net/v1') # Your API Endpoint
-    .set_project('6137a2ef0d4f5') # Your project ID
-    .set_key('6dee49d861f5d443d04065e321522967182b1c65e75cffcf3905e37ebb927e87e7c2a540385b561e3b3df91fcc775749275dc7922f480389b5d2712a25abb667f1a0595c4107685e0bf8d3be22364228c9b0725c0f60d3ffc4b0ef9decd10ce4fb50b574d76d6bc3f56a38393ab505b15bae29aa260511ee5078434117f7df23') # Your secret API key
-    )
 
-    database = Database(client)
 
-    def _init_(self, buffer_time=1, frame_threshold=5, notification_rate=15):
+    def _init_(self, endpoint, project_id, api_key, organization_id, buffer_time=1, frame_threshold=5, notification_rate=15):
         self.buffer_time = buffer_time
         self.frame_threshold = frame_threshold
         self.notification_rate = notification_rate
         self.last_notification = time.time() - notification_rate
+        self.organization_id = organization_id
+        (self.client
+        .set_endpoint(endpoint) # Your API Endpoint
+        .set_project(project_id) # Your project ID
+        .set_key(api_key) # Your secret API key
+        )
+        self.database = Database(self.client)
 
     def insert_frame(self):
         self.frame_queue.append(time.time())
@@ -39,6 +41,6 @@ class FrameBuffer():
     def send_notification(self):
         if (self.last_notification < (time.time() - self.notification_rate)):
             print("No mask threshold reached. Notifying.")
-            result = self.database.create_document('61871d8957bbc', {'timestamp': time.time(), 'organizationId': 'testOrganization'})
+            result = self.database.create_document('61871d8957bbc', {'timestamp': time.time(), 'organizationId': self.organization_id})
             print(result)
             self.last_notification = time.time()
