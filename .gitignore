@@ -1,0 +1,6 @@
+test/*
+runs/*
+train/*
+*.pyc
+valid/*
+utils/__pycache__/*
