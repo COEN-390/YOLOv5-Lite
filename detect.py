@@ -11,14 +11,14 @@ from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
     scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
-from utils.mask_frame import FrameBuffer
+from utils.mask_frame import AWFrameBuffer
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
 def detect(save_img=False):
     # source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
-    source, weights, view_img, save_txt, imgsz = 0, ".\YOLOv5-Lite-best.pt", opt.view_img, opt.save_txt, opt.img_size
+    source, weights, view_img, save_txt, imgsz = opt.source, ".\YOLOv5-Lite-best.pt", opt.view_img, opt.save_txt, opt.img_size
     organization_id, api_endpoint, project_id, api_key, device_id = opt.organization_id, opt.endpoint, opt.project_id, opt.api_key, opt.device_id
 
     save_img = not opt.nosave and not source.endswith(
@@ -70,7 +70,7 @@ def detect(save_img=False):
             next(model.parameters())))  # run once
     t0 = time.time()
 
-    frame_buffer = FrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id)
+    frame_buffer = AWFrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id)
 
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
