@@ -19,7 +19,7 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 def detect(save_img=False):
     # source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     source, weights, view_img, save_txt, imgsz = 0, ".\YOLOv5-Lite-best.pt", opt.view_img, opt.save_txt, opt.img_size
-    organization_id, api_endpoint, project_id, api_key = opt.organization_id, opt.endpoint, opt.project_id, opt.api_key
+    organization_id, api_endpoint, project_id, api_key, device_id = opt.organization_id, opt.endpoint, opt.project_id, opt.api_key, opt.device_id
 
     save_img = not opt.nosave and not source.endswith(
         '.txt')  # save inference images
@@ -70,7 +70,7 @@ def detect(save_img=False):
             next(model.parameters())))  # run once
     t0 = time.time()
 
-    frame_buffer = FrameBuffer(api_endpoint, project_id, api_key, organization_id)
+    frame_buffer = FrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id)
 
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
@@ -225,6 +225,9 @@ if __name__ == '__main__':
     # API key
     parser.add_argument('--api-key', type=str, default="6dee49d861f5d443d04065e321522967182b1c65e75cffcf3905e37ebb927e87e7c2a540385b561e3b3df91fcc775749275dc7922f480389b5d2712a25abb667f1a0595c4107685e0bf8d3be22364228c9b0725c0f60d3ffc4b0ef9decd10ce4fb50b574d76d6bc3f56a38393ab505b15bae29aa260511ee5078434117f7df23",
                         help='API key of the backend')
+    # Device Id
+    parser.add_argument('--device-id', type=str, default="DefaultDevice",
+                        help='ID of this device')
     opt = parser.parse_args()
     print(opt)
     check_requirements(exclude=('pycocotools', 'thop'))
