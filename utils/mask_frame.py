@@ -1,6 +1,8 @@
 import time
 from appwrite.client import Client
 from appwrite.services.database import Database
+from appwrite.services.functions import Functions
+
 
 
 class AWFrameBuffer():
@@ -14,6 +16,8 @@ class AWFrameBuffer():
     ping_rate: int = 120
     last_ping: int = (time.time() - ping_rate)
     device_id: str = "defaultDevice"
+    functions = Functions(client)
+
 
 
 
@@ -32,6 +36,7 @@ class AWFrameBuffer():
         )
         self.database = Database(self.client)
         self.device_id = device_id
+        self.functions = Functions(self.client)
 
     def insert_frame(self):
         self.frame_queue.append(time.time())
@@ -49,6 +54,8 @@ class AWFrameBuffer():
         if (self.last_notification < (time.time() - self.notification_rate)):
             print("No mask threshold reached. Notifying.")
             result = self.database.create_document('61871d8957bbc', {'timestamp': time.time(), 'organizationId': self.organization_id, 'deviceId': self.device_id,})
+            print(result)
+            result = self.functions.create_execution('618d9b5104d7c')
             print(result)
             self.last_notification = time.time()
     
