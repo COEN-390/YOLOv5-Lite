@@ -53,7 +53,7 @@ class AWFrameBuffer():
     def send_notification(self):
         if (self.last_notification < (time.time() - self.notification_rate)):
             print("No mask threshold reached. Notifying.")
-            result = self.database.create_document('61871d8957bbc', {'timestamp': time.time(), 'organizationId': self.organization_id, 'deviceId': self.device_id,})
+            result = self.database.create_document('61871d8957bbc', {'timestamp': time.time(), 'organizationId': self.organization_id, 'deviceId': self.device_id,}, read=["*"])
             print(result)
             result = self.functions.create_execution('618d9b5104d7c')
             print(result)
@@ -67,9 +67,9 @@ class AWFrameBuffer():
             result = self.database.list_documents('61896dfa87e44', filters=['deviceId={}'.format(self.device_id), 'organizationId={}'.format(self.organization_id)])
             # If there is no document for this device, create it
             if (not result["documents"]):
-                result = self.database.create_document('61896dfa87e44', {'deviceId': self.device_id, 'organizationId': self.organization_id, 'healthTimestamp': time.time()})
+                result = self.database.create_document('61896dfa87e44', {'deviceId': self.device_id, 'organizationId': self.organization_id, 'healthTimestamp': time.time()}, read=["*"])
             # Else, update the document with the correct timestamp
             else:
                 document_id = result["documents"][0]["$id"]
                 document = self.database.get_document('61896dfa87e44', document_id)
-                result = self.database.update_document('61896dfa87e44', document_id, {'deviceId': document["deviceId"], 'organizationId': document["organizationId"], 'healthTimestamp': time.time()})
+                result = self.database.update_document('61896dfa87e44', document_id, {'deviceId': document["deviceId"], 'organizationId': document["organizationId"], 'healthTimestamp': time.time()}, read=["*"])
