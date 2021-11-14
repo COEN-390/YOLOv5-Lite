@@ -55,7 +55,7 @@ class AWFrameBuffer():
             print("No mask threshold reached. Notifying.")
             result = self.database.create_document('61871d8957bbc', {'timestamp': time.time(), 'organizationId': self.organization_id, 'deviceId': self.device_id,}, read=["*"])
             print(result)
-            result = self.functions.create_execution('618d9b5104d7c')
+            result = self.functions.create_execution('618d9b5104d7c', 'NO MASK DETECTED | DEVICE: ' + self.device_id)
             print(result)
             self.last_notification = time.time()
     
