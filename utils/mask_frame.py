@@ -43,7 +43,7 @@ class AWFrameBuffer():
 
     def empty_queue(self):
         self.send_ping()
-        while (self.frame_queue and self.frame_queue[0] < (time.time() - 1)):
+        while (self.frame_queue and self.frame_queue[0] < (time.time() - self.buffer_time)):
             self.frame_queue.pop(0)
 
     def check_queue(self):

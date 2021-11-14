@@ -20,6 +20,7 @@ def detect(save_img=False):
     # source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     source, weights, view_img, save_txt, imgsz = opt.source, ".\YOLOv5-Lite-best.pt", opt.view_img, opt.save_txt, opt.img_size
     organization_id, api_endpoint, project_id, api_key, device_id = opt.organization_id, opt.endpoint, opt.project_id, opt.api_key, opt.device_id
+    buffer_time, no_mask_frames, show_render_time = opt.buffer_time, opt.no_mask_frames, opt.show_render_time
 
     save_img = not opt.nosave and not source.endswith(
         '.txt')  # save inference images
@@ -70,7 +71,7 @@ def detect(save_img=False):
             next(model.parameters())))  # run once
     t0 = time.time()
 
-    frame_buffer = AWFrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id)
+    frame_buffer = AWFrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id, buffer_time=buffer_time, frame_threshold=no_mask_frames)
 
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
@@ -141,7 +142,8 @@ def detect(save_img=False):
                                      color=colors[int(cls)], line_thickness=3)
 
             # Print time (inference + NMS)
-            # print(f'{s}Done. ({t2 - t1:.3f}s)')
+            if (show_render_time):
+                print(f'{s}Done. ({t2 - t1:.3f}s)')
 
             # Stream results
             if view_img:
@@ -228,6 +230,15 @@ if __name__ == '__main__':
     # Device Id
     parser.add_argument('--device-id', type=str, default="DefaultDevice",
                         help='ID of this device')
+    # Buffer time
+    parser.add_argument('--buffer-time', type=int, default=1,
+                        help='Frame buffer length in seconds')
+    # No mask frames required
+    parser.add_argument('--no-mask-frames', type=int, default=15,
+                    help='Number of no mask frames required in the frame buffer')
+    # Show fps
+    parser.add_argument('--show-render-time', action='store_true',
+                        help='Show render time in logs')
     opt = parser.parse_args()
     print(opt)
     check_requirements(exclude=('pycocotools', 'thop'))
