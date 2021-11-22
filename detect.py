@@ -14,6 +14,7 @@ from utils.general import check_img_size, check_requirements, check_imshow, non_
 from utils.mask_frame import AWFrameBuffer
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
+from utils.video_clip_buffer import VideoClipBuffer
 
 
 def detect(save_img=False):
@@ -71,7 +72,8 @@ def detect(save_img=False):
             next(model.parameters())))  # run once
     t0 = time.time()
 
-    frame_buffer = AWFrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id, buffer_time=buffer_time, frame_threshold=no_mask_frames)
+    video_clip_buffer = VideoClipBuffer(api_endpoint, project_id, api_key, organization_id, device_id)
+    frame_buffer = AWFrameBuffer(api_endpoint, project_id, api_key, organization_id, device_id, video_clip_buffer, buffer_time=buffer_time, frame_threshold=no_mask_frames)
 
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
@@ -123,6 +125,7 @@ def detect(save_img=False):
                     if (names[int(c)] == "no mask"):
                         frame_buffer.insert_frame()
                     frame_buffer.empty_queue()
+                    video_clip_buffer.empty_queue()
                     frame_buffer.check_queue()
 
                 # Write results
@@ -158,17 +161,21 @@ def detect(save_img=False):
                     if vid_path != save_path:  # new video
                         vid_path = save_path
                         if isinstance(vid_writer, cv2.VideoWriter):
+                            print(1)
                             vid_writer.release()  # release previous video writer
                         if vid_cap:  # video
+                            print(2)
                             fps = vid_cap.get(cv2.CAP_PROP_FPS)
                             w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         else:  # stream
+                            print(3)
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
                             save_path += '.mp4'
                         vid_writer = cv2.VideoWriter(
                             save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
+                    video_clip_buffer.add_frame(im0)
 
     if save_txt or save_img:
         s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''

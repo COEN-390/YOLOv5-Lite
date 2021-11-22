@@ -12,7 +12,6 @@ from appwrite.services.storage import Storage
 class VideoClipBuffer():
     frame_queue:List[VideoClipFrame] = []
     buffer_length: int
-    random_name: str
     client = Client()
     storage = Storage(client)
 
@@ -24,17 +23,21 @@ class VideoClipBuffer():
         )
         self.storage = Storage(self.client)
         self.buffer_length = buffer_length
-        self.random_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
 
     def save_buffer(self):
-        fps, w, h = 30, self.frame_queue[0].shape[1], self.frame_queue[0].shape[0]
-        save_path = './' + self.random_name + '.mp4'
+        if (len(self.frame_queue) < 20):
+            return
+        fps, w, h = 30, self.frame_queue[0].frame.shape[1], self.frame_queue[0].frame.shape[0]
+        random_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        save_path = './' + random_name + '.mp4'
         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         while len(self.frame_queue) > 0:
             vid_writer.write(self.frame_queue.pop(0).frame)
-        result = self.storage.create_file(open(save_path, 'rb'))
+        vid_writer.release()
+        result = self.storage.create_file(open(save_path, 'rb'), read=["*"])
         os.remove(save_path)
-        print("Placeholder")
+        print(result)
+        return result["$id"]
 
     def add_frame(self, im0):
         frame_object = VideoClipFrame(im0, time.time())
@@ -42,6 +45,6 @@ class VideoClipBuffer():
         self.empty_queue()
 
     def empty_queue(self):
-        while (self.frame_queue and self.frame_queue[0] < (time.time() - self.buffer_length)):
+        while (self.frame_queue and self.frame_queue[0].timestamp < (time.time() - self.buffer_length)):
             self.frame_queue.pop(0)
 
